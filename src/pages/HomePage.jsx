@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 export function HomePage() {
   const [websites, setWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchWebsites();
@@ -17,16 +17,21 @@ export function HomePage() {
 
   async function fetchWebsites() {
     try {
-      const { data, error } = await supabase
+      setError(null);
+      const { data, error: supabaseError } = await supabase
         .from('websites')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        throw new Error(supabaseError.message);
+      }
 
       setWebsites(data || []);
     } catch (error) {
-      console.error('Error fetching websites:', error);
+      console.error('Error details:', error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +51,11 @@ export function HomePage() {
             <h1 className="text-4xl font-bold text-foreground mb-4">Welcome to Tech Industries</h1>
             <p className="text-muted-foreground mb-8">Discover innovative solutions for your business needs</p>
             
-            {websites.length > 0 ? (
+            {error ? (
+              <p className="text-red-500 mb-4">{error}</p>
+            ) : isLoading ? (
+              <p className="text-muted-foreground">Loading...</p>
+            ) : websites.length > 0 ? (
               <Button
                 asChild
                 className="flex items-center gap-2"
