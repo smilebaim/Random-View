@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -26,11 +25,21 @@ export function LoginPage() {
         navigate("/manage");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      // Check if the error is due to invalid credentials
+      const errorMessage = error?.message?.toLowerCase() || '';
+      if (errorMessage.includes('invalid_credentials') || errorMessage.includes('invalid login credentials')) {
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password. Please check your credentials and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again later.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
