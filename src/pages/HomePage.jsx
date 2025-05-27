@@ -5,11 +5,13 @@ import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function HomePage() {
   const [websites, setWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchWebsites();
@@ -91,8 +93,15 @@ export function HomePage() {
                   Explore Our Solutions
                 </Link>
               </Button>
+            ) : user ? (
+              <p className="text-muted-foreground">No solutions available at the moment.</p>
             ) : (
-              <p className="text-muted-foreground">Please contact an administrator for access.</p>
+              <div className="space-y-4">
+                <p className="text-muted-foreground">Please sign in to access our solutions.</p>
+                <Button asChild variant="outline">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              </div>
             )}
           </header>
 
