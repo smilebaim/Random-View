@@ -31,7 +31,7 @@ export function HomePage() {
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         if (attempt === retries) {
-          throw new Error(`Failed to fetch data after ${retries} attempts. Please check your internet connection and try again.`);
+          throw new Error(`Failed to fetch data after ${retries} attempts. Please try again later.`);
         }
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -80,8 +80,10 @@ export function HomePage() {
                 </Button>
               </div>
             ) : isLoading ? (
-              <p className="text-muted-foreground">Loading...</p>
-            ) : websites.length > 0 ? (
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
               <Button
                 asChild
                 className="flex items-center gap-2"
@@ -91,8 +93,6 @@ export function HomePage() {
                   Explore Our Solutions
                 </Link>
               </Button>
-            ) : (
-              <p className="text-muted-foreground">Please contact an administrator for access.</p>
             )}
           </header>
 
