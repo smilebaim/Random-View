@@ -15,22 +15,36 @@ export function HomePage() {
     fetchWebsites();
   }, []);
 
+  async function fetchWebsitesWithRetry(retries = 3, delay = 1000) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const { data, error: supabaseError } = await supabase
+          .from('websites')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (supabaseError) {
+          throw new Error(supabaseError.message);
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        if (attempt === retries) {
+          throw new Error(`Failed to fetch data after ${retries} attempts. Please check your internet connection and try again.`);
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
   async function fetchWebsites() {
     try {
       setError(null);
-      const { data, error: supabaseError } = await supabase
-        .from('websites')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (supabaseError) {
-        console.error('Supabase error:', supabaseError);
-        throw new Error(supabaseError.message);
-      }
-
-      setWebsites(data || []);
+      const data = await fetchWebsitesWithRetry();
+      setWebsites(data);
     } catch (error) {
-      console.error('Error details:', error);
+      console.error('Error fetching websites:', error);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -52,7 +66,19 @@ export function HomePage() {
             <p className="text-muted-foreground mb-8">Discover innovative solutions for your business needs</p>
             
             {error ? (
-              <p className="text-red-500 mb-4">{error}</p>
+              <div className="mb-4">
+                <p className="text-red-500">{error}</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsLoading(true);
+                    fetchWebsites();
+                  }}
+                  className="mt-2"
+                >
+                  Retry Connection
+                </Button>
+              </div>
             ) : isLoading ? (
               <p className="text-muted-foreground">Loading...</p>
             ) : websites.length > 0 ? (
